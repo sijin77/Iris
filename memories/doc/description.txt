@@ -1,0 +1,50 @@
+memory_system/
+│
+├── core/                       # Основная логика системы
+│   ├── __init__.py
+│   ├── sensory_buffer/         # Сенсорный буфер (<1 сек)
+│   │   ├── __init__.py
+│   │   ├── redis_client.py     # Redis клиент для сенсорного буфера
+│   │   └── interface.py        # Интерфейс для работы с буфером
+│   │
+│   ├── working_memory/         # Рабочая память (7 дней)
+│   │   ├── __init__.py
+│   │   ├── redis_client.py     # Redis клиент для рабочей памяти
+│   │   └── interface.py
+│   │
+│   └── long_term_memory/       # Долговременная память
+│       ├── __init__.py
+│       ├── s3_client.py        # Клиент для S3 (сырые данные)
+│       ├── vector_db.py        # Интерфейс к векторной БД
+│       ├── metadata_db.py      # Интерфейс для метаданных (будущая Cassandra)
+│       └── interface.py
+│
+├── models/                    # Модели данных
+│   ├── __init__.py
+│   ├── memory_item.py         # Базовый класс элемента памяти
+│   └── ...                    # Другие модели
+│
+├── utils/                     # Вспомогательные утилиты
+│   ├── __init__.py
+│   ├── config_loader.py       # Загрузка конфигурации
+│   └── serializers.py        # Сериализация/десериализация
+│
+├── tests/                     # Тесты
+│   ├── __init__.py
+│   ├── test_sensory_buffer.py
+│   ├── test_working_memory.py
+│   └── test_long_term_memory.py
+│
+├── config/                    # Конфигурационные файлы
+│   ├── dev.yaml               # Конфиг для разработки
+│   ├── prod.yaml              # Конфиг для продакшена
+│   └── local.yaml             # Локальный конфиг
+│
+├── scripts/                   # Вспомогательные скрипты
+│   ├── setup_db.py            # Скрипт инициализации БД
+│   └── migrate.py             # Скрипты миграции
+│
+├── .env.example               # Пример env файла
+├── requirements.txt           # Зависимости
+├── README.md                  # Документация
+└── main.py                    # Точка входа

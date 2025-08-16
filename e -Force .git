@@ -1,0 +1,3 @@
+[33me93146d[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m Remove database files from Git tracking - databases should not be version controlled
+[33m94edd81[m Update .gitignore: exclude model files and large binary files
+[33me49207b[m Initial commit: Iriska project setup with memory management system, agent architecture, and web interface

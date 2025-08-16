@@ -1,0 +1,11 @@
+sequenceDiagram
+    participant SensoryBuffer
+    participant WorkingMemory
+    participant LongTermMemory
+    
+    SensoryBuffer->>WorkingMemory: Сырые сообщения (Redis Stream)
+    loop Каждые N сообщений/по таймеру
+        WorkingMemory->>WorkingMemory: _compress_dialogue()
+        WorkingMemory->>LongTermMemory: Сжатый диалог (векторизация)
+    end
+    LongTermMemory-->>WorkingMemory: Семантический поиск по запросу

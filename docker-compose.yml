@@ -1,0 +1,137 @@
+version: '3.8'
+
+services:
+  # Frontend - React приложение
+  frontend:
+    build:
+      context: ./src/frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:80"
+    volumes:
+      - ./src/frontend:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+    networks:
+      - iriska-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    depends_on:
+      - agent
+
+  # Backend API
+  agent:
+    build:
+      context: ./src
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data
+    environment:
+      # LLM сервер
+      LLM_SERVER_URL: "http://llm-server:8001"
+      
+      # Тип реляционной БД (sqlite, postgresql, mysql)
+      DB_TYPE: "sqlite"
+      
+      # Реляционная БД - для SQLAlchemy (профили, триггеры)
+      MEMORY_DB_URL: "sqlite:////app/data/memory.sqlite"  # Для SQLAlchemy
+      MEMORY_DB_FILE: "/app/data/memory.sqlite"           # Для файловых БД
+      
+      # Тип векторной БД (chroma, weaviate, pinecone, qdrant)
+      VECTOR_TYPE: "chroma"
+      CHROMA_PATH: "/app/data/chroma_db"
+      VECTOR_API_KEY: ""  # Для внешних векторных БД
+      
+      # Тип эмбеддингов (openai, sentence-transformers, instructor)
+      EMBEDDING_TYPE: "openai"
+      OPENAI_API_KEY: ""  # Для OpenAI эмбеддингов
+      EMBEDDING_MODEL: "text-embedding-ada-002"
+      
+      # Тип памяти (sqlite, redis, postgresql)
+      MEMORY_TYPE: "sqlite"
+      
+      # Дополнительные настройки
+      LOG_LEVEL: "INFO"
+    depends_on:
+      llm-server:
+        condition: service_healthy
+    networks:
+      - iriska-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # LLM сервер
+  llm-server:
+    build:
+      context: ./llm-server
+      dockerfile: Dockerfile
+    ports:
+      - "8001:8001"
+    volumes:
+      - ./llm-server:/app
+    environment:
+      - LLAMA_SERVER_HOST=0.0.0.0
+      - LLAMA_SERVER_PORT=8001
+    networks:
+      - iriska-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # TODO: Добавить PostgreSQL сервис для замены SQLite
+  # postgres:
+  #   image: postgres:15
+  #   environment:
+  #     POSTGRES_DB: iriska
+  #     POSTGRES_USER: iriska
+  #     POSTGRES_PASSWORD: iriska123
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #   ports:
+  #     - "5432:5432"
+  #   networks:
+  #     - iriska-network
+
+  # TODO: Добавить Redis сервис для кэширования и памяти
+  # redis:
+  #   image: redis:7-alpine
+  #   ports:
+  #     - "6379:6379"
+  #   networks:
+  #     - iriska-network
+
+  # TODO: Добавить Weaviate сервис для замены ChromaDB
+  # weaviate:
+  #   image: semitechnologies/weaviate:1.22.4
+  #   ports:
+  #     - "8080:8080"
+  #   environment:
+  #     QUERY_DEFAULTS_LIMIT: 25
+  #     AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: 'true'
+  #     PERSISTENCE_DATA_PATH: '/var/lib/weaviate'
+  #     DEFAULT_VECTORIZER_MODULE: 'none'
+  #     ENABLE_MODULES: 'text2vec-openai,text2vec-cohere,text2vec-huggingface,ref2vec-centroid,generative-openai,qna-openai'
+  #     CLUSTER_HOSTNAME: 'node1'
+  #   volumes:
+  #     - weaviate_data:/var/lib/weaviate
+  #   networks:
+  #     - iriska-network
+
+networks:
+  iriska-network:
+    driver: bridge
+
+# volumes:
+#   postgres_data:
+#   weaviate_data:

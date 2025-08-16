@@ -1,0 +1,30 @@
+# Основные веб-фреймворки
+fastapi==0.110.2
+uvicorn==0.29.0
+
+# Валидация и сериализация (старая версия без Rust)
+pydantic==1.10.13
+
+# HTTP клиент
+httpx==0.27.0
+
+# LangChain и интеграции
+langchain==0.1.16
+langchain-community==0.0.32
+
+# Векторная база данных
+chromadb==0.4.24
+
+# OpenAI API (для эмбеддингов)
+openai==1.30.1
+
+# База данных
+SQLAlchemy==2.0.30
+
+# Дополнительные утилиты
+python-multipart==0.0.9
+python-dotenv==1.0.1
+
+# Тестирование
+pytest>=8.2.0,<9.0.0
+pytest-asyncio>=0.24.0 
