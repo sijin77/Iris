@@ -57,19 +57,37 @@ class ChromaVectorStorage(VectorStorage):
                 # Здесь можно добавить другие типы эмбеддингов
                 raise NotImplementedError(f"Embedding type {self.config.embedding_type} not supported")
             
-            # Настраиваем путь к ChromaDB
-            if self.config.vector_path:
-                persist_directory = self.config.vector_path
+            # Настраиваем подключение к ChromaDB
+            chromadb_url = os.getenv("CHROMADB_URL")
+            
+            if chromadb_url:
+                # Подключение к удаленному ChromaDB серверу
+                import chromadb
+                from chromadb.config import Settings
+                
+                chroma_client = chromadb.HttpClient(
+                    host=os.getenv("CHROMADB_HOST", "localhost"),
+                    port=int(os.getenv("CHROMADB_PORT", "8000"))
+                )
+                
+                self.vectorstore = Chroma(
+                    client=chroma_client,
+                    collection_name="iriska_memory",
+                    embedding_function=self.embeddings
+                )
+                logger.info(f"ChromaDB подключен к серверу {chromadb_url}")
             else:
-                persist_directory = "./data/chroma_db"
-            
-            # Создаём ChromaDB vectorstore
-            self.vectorstore = Chroma(
-                persist_directory=persist_directory,
-                embedding_function=self.embeddings
-            )
-            
-            logger.info(f"ChromaDB инициализирован в {persist_directory}")
+                # Локальное подключение (fallback)
+                if self.config.vector_path:
+                    persist_directory = self.config.vector_path
+                else:
+                    persist_directory = "./data/chroma_db"
+                
+                self.vectorstore = Chroma(
+                    persist_directory=persist_directory,
+                    embedding_function=self.embeddings
+                )
+                logger.info(f"ChromaDB инициализирован локально в {persist_directory}")
             
         except Exception as e:
             logger.error(f"Ошибка инициализации ChromaDB: {e}")

@@ -1,3 +1,7 @@
+import aioredis
+from typing import List, Dict, Optional
+from datetime import datetime
+
 class RedisClient:
     """
     Класс для работы с Redis, инкапсулирующий все Redis-операции.

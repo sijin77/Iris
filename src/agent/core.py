@@ -1,5 +1,6 @@
 import json
 import logging
+from typing import Dict, List, Any
 from schemas.openai import ChatRequest, ChatResponse
 from agent.memory import memory, working_memory
 from agent.retriever import retriever
@@ -10,6 +11,7 @@ from agent.llm_client import llama_cpp_completion
 from agent.emotions import analyze_emotion
 from agent.retriever import save_summary_to_chroma
 from agent.prompt_builder import PromptBuilder, PromptComponents
+from agent.emotional_memory import get_emotional_integration
 
 # TODO (core):
 # - Поддержка streaming-ответов (SSE/WebSocket) на уровне агента
@@ -53,12 +55,30 @@ async def agent_respond(request: ChatRequest) -> ChatResponse:
         # Шаг 2: Сборка контекста и истории
         context, conversation_history = await _build_context_and_history(request.messages)
         
-        # Шаг 3: Анализ эмоций пользователя
-        emotion = analyze_emotion(last_message)
-        logger.info(f"Эмоция пользователя: {emotion}")
+        # Шаг 3: Обработка через эмоциональную память (если доступна)
+        emotional_context_data = {}
+        emotional_integration = get_emotional_integration()
+        if emotional_integration:
+            try:
+                conversation_context = [msg.content for msg in request.messages[:-1]]
+                emotional_result = await emotional_integration.process_user_message(
+                    last_message, user_id, conversation_context
+                )
+                emotional_context_data = emotional_result.get("emotional_context", {})
+                logger.info(f"Эмоциональный контекст: {emotional_context_data.get('user_emotion', {}).get('type', 'unknown')}")
+            except Exception as e:
+                logger.warning(f"Ошибка обработки эмоциональной памяти: {e}")
         
-        # Шаг 4: Сборка структурированного промпта
-        prompt = await _build_structured_prompt(profile, last_message, context, conversation_history)
+        # Шаг 3 (fallback): Базовый анализ эмоций
+        emotion = analyze_emotion(last_message)
+        logger.info(f"Базовая эмоция пользователя: {emotion}")
+        
+        # Шаг 4: Сборка структурированного промпта с эмоциональным контекстом
+        emotional_context_text = ""
+        if emotional_integration:
+            emotional_context_text = emotional_integration.get_emotional_context_for_prompt(last_message, user_id)
+        
+        prompt = await _build_structured_prompt(profile, last_message, context, conversation_history, emotional_context_text)
         
         # Шаг 5: Генерация ответа с параметрами профиля
         llm_response = await _generate_response_with_profile(profile, prompt)
@@ -162,7 +182,7 @@ async def _build_context_and_history(messages: list) -> tuple[str, str]:
         logger.error(f"Ошибка сборки контекста и истории: {e}")
         return "", ""
 
-async def _build_structured_prompt(profile: 'AgentProfile', user_message: str, context: str, conversation_history: str) -> str:
+async def _build_structured_prompt(profile: 'AgentProfile', user_message: str, context: str, conversation_history: str, emotional_context: str = "") -> str:
     """
     Сборка структурированного промпта через PromptBuilder.
     
@@ -177,11 +197,16 @@ async def _build_structured_prompt(profile: 'AgentProfile', user_message: str, c
     """
     try:
         # Создаём компоненты для промпта
+        # Добавляем эмоциональный контекст к обычному контексту
+        full_context = context
+        if emotional_context:
+            full_context = f"{context}\n\n{emotional_context}" if context else emotional_context
+        
         components = PromptComponents(
             system_prompt=profile.system_prompt or "",
             persona_traits=profile.persona_traits or "",
             safety_rules=profile.safety_rules or "",
-            context=context,
+            context=full_context,
             user_message=user_message,
             conversation_history=conversation_history
         )
@@ -291,4 +316,34 @@ def _create_error_response(error_message: str) -> ChatResponse:
             "finish_reason": "error"
         }],
         usage={"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}
-    ) 
+    )
+
+
+async def process_user_feedback(user_id: str, feedback_text: str, conversation_context: List[str] = None) -> Dict[str, Any]:
+    """
+    Обрабатывает обратную связь пользователя и корректирует профиль агента
+    
+    Args:
+        user_id: ID пользователя
+        feedback_text: Текст обратной связи
+        conversation_context: Контекст разговора
+        
+    Returns:
+        Результат обработки обратной связи
+    """
+    try:
+        emotional_integration = get_emotional_integration()
+        if not emotional_integration:
+            logger.warning("Эмоциональная память не инициализирована")
+            return {"status": "emotional_memory_not_available"}
+        
+        result = await emotional_integration.process_feedback(
+            user_id, feedback_text, conversation_context
+        )
+        
+        logger.info(f"Обработана обратная связь от {user_id}: {result.get('status', 'unknown')}")
+        return result
+        
+    except Exception as e:
+        logger.error(f"Ошибка обработки обратной связи: {e}")
+        return {"status": "error", "error": str(e)} 

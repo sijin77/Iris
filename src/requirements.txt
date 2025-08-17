@@ -14,12 +14,17 @@ langchain-community==0.0.32
 
 # Векторная база данных
 chromadb==0.4.24
+chromadb-client==0.4.24
 
 # OpenAI API (для эмбеддингов)
 openai==1.30.1
 
 # База данных
 SQLAlchemy==2.0.30
+
+# Redis для L1 кэша
+redis==5.0.4
+aioredis==2.0.1
 
 # Дополнительные утилиты
 python-multipart==0.0.9

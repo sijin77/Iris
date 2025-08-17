@@ -56,10 +56,23 @@ services:
       # Тип памяти (sqlite, redis, postgresql)
       MEMORY_TYPE: "sqlite"
       
+      # Redis настройки для L1 кэша
+      REDIS_URL: "redis://redis:6379"
+      REDIS_DB: "0"
+      
+      # ChromaDB настройки для L3 векторного хранилища
+      CHROMADB_HOST: "chromadb"
+      CHROMADB_PORT: "8000"
+      CHROMADB_URL: "http://chromadb:8000"
+      
       # Дополнительные настройки
       LOG_LEVEL: "INFO"
     depends_on:
       llm-server:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      chromadb:
         condition: service_healthy
     networks:
       - iriska-network
@@ -103,15 +116,42 @@ services:
   #   networks:
   #     - iriska-network
 
-  # TODO: Добавить Redis сервис для кэширования и памяти
-  # redis:
-  #   image: redis:7-alpine
-  #   ports:
-  #     - "6379:6379"
-  #   networks:
-  #     - iriska-network
+  # Redis сервис для L1 кэша новой архитектуры памяти
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    networks:
+      - iriska-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
-  # TODO: Добавить Weaviate сервис для замены ChromaDB
+  # ChromaDB сервис для L3 векторного хранилища
+  chromadb:
+    image: ghcr.io/chroma-core/chroma:latest
+    ports:
+      - "8000:8000"
+    volumes:
+      - chromadb_data:/chroma/chroma
+    environment:
+      - CHROMA_SERVER_HOST=0.0.0.0
+      - CHROMA_SERVER_HTTP_PORT=8000
+      - CHROMA_SERVER_CORS_ALLOW_ORIGINS=["*"]
+    networks:
+      - iriska-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/heartbeat"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # TODO: Добавить Weaviate сервис как альтернативу ChromaDB
   # weaviate:
   #   image: semitechnologies/weaviate:1.22.4
   #   ports:
@@ -132,6 +172,8 @@ networks:
   iriska-network:
     driver: bridge
 
-# volumes:
+volumes:
+  redis_data:
+  chromadb_data:
 #   postgres_data:
 #   weaviate_data:

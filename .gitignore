@@ -69,6 +69,7 @@ pids
 
 # Cursor specific
 .cursor/workspace/ 
+.cursor-memory/
 
 # Claude specific
 .claude/
