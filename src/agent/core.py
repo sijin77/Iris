@@ -163,8 +163,27 @@ async def _build_context_and_history(messages: list) -> tuple[str, str]:
         if retriever:
             try:
                 last_user_message = messages[-1].content if messages else ""
-                context_docs = retriever.get_relevant_documents(last_user_message)
-                context = "\n".join([doc.page_content for doc in context_docs]) if context_docs else ""
+                
+                # Используем улучшенный ретривер если доступен
+                try:
+                    from agent.memory.enhanced_retriever import EnhancedRetriever
+                    from agent.memory.config_loader import get_agent_summarization_config
+                    
+                    # Получаем конфигурацию для агента
+                    agent_name = profile.name if profile else "default"
+                    config = get_agent_summarization_config(agent_name)
+                    
+                    enhanced_retriever = EnhancedRetriever(retriever, config=config)
+                    context, context_docs = await enhanced_retriever.get_relevant_context(
+                        last_user_message, user_id=user_id, k=config.get("final_k", 4)
+                    )
+                    logger.debug(f"Enhanced retrieval: {len(context)} chars from {len(context_docs)} docs")
+                except ImportError:
+                    # Fallback на базовый ретривер
+                    context_docs = retriever.get_relevant_documents(last_user_message)
+                    context = "\n".join([doc.page_content for doc in context_docs]) if context_docs else ""
+                    logger.debug(f"Basic retrieval: {len(context)} chars")
+                    
             except Exception as e:
                 logger.error(f"Ошибка получения контекста из ChromaDB: {e}")
                 context = ""

@@ -25,6 +25,8 @@ from agent.emotional_memory import (
     shutdown_emotional_memory,
     EmotionalMemoryConfig
 )
+from agent.memory.config_loader import initialize_config_loader
+from config.database import get_db
 
 # Импорты основного приложения
 from routes.chat import router as chat_router, openai_router
@@ -33,6 +35,7 @@ from routes.config import router as config_router
 from routes.system import router as system_router
 from routes.tools import router as tools_router
 from routes.profile_management import router as profile_router
+from routes.summarization_config import router as summarization_config_router
 
 
 # Глобальные экземпляры
@@ -76,6 +79,14 @@ async def lifespan(app: FastAPI):
             logger.info("✅ Эмоциональная память инициализирована")
         else:
             logger.warning("⚠️ Эмоциональная память не инициализирована")
+        
+        # 2.5. Инициализируем загрузчик конфигурации суммаризации
+        try:
+            db_session = next(get_db())
+            initialize_config_loader(db_session)
+            logger.info("✅ Загрузчик конфигурации суммаризации инициализирован")
+        except Exception as e:
+            logger.warning(f"⚠️ Не удалось инициализировать загрузчик конфигурации: {e}")
         
         # 3. Запускаем фоновые процессы оптимизации
         if enhanced_memory_controller:
@@ -126,6 +137,7 @@ app.include_router(config_router, prefix="/api/v1/config", tags=["Configuration"
 app.include_router(system_router, prefix="/api/v1/system", tags=["System"])
 app.include_router(tools_router, prefix="/api/v1/tools", tags=["Tools"])
 app.include_router(profile_router, prefix="/api/v1/profiles", tags=["Profile Management"])
+app.include_router(summarization_config_router, prefix="/api/v1/summarization", tags=["Summarization Config"])
 
 
 @app.get("/")

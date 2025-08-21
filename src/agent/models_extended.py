@@ -1,6 +1,7 @@
 """
 Расширенные модели для эмоциональной памяти и персистентного хранения профилей.
 Дополняет основные модели из models.py.
+Включает настройки суммаризации и работы с диалогами.
 """
 
 from sqlalchemy import (
@@ -14,6 +15,303 @@ import json
 
 # Используем тот же Base что и в основных моделях
 from .models import Base
+
+# ============================================================================
+# МОДЕЛИ ДЛЯ НАСТРОЕК СУММАРИЗАЦИИ
+# ============================================================================
+
+class AgentSummarizationSettings(Base):
+    """
+    Модель для хранения настроек суммаризации и работы с диалогами для каждого агента.
+    Позволяет персонализировать паттерны и пороги для разных агентов.
+    """
+    __tablename__ = "agent_summarization_settings"
+    
+    id = Column(Integer, primary_key=True)
+    
+    # Связь с профилем агента
+    agent_name = Column(String, ForeignKey("agent_profiles.name"), nullable=False, unique=True, index=True)
+    
+    # Основные настройки
+    enabled = Column(Boolean, default=True, nullable=False)
+    chunking_strategy = Column(String, default="hybrid", nullable=False)  # hybrid, topic_based, etc.
+    
+    # Параметры чанкинга
+    max_chunk_size = Column(Integer, default=512, nullable=False)
+    min_chunk_size = Column(Integer, default=100, nullable=False)
+    overlap_size = Column(Integer, default=50, nullable=False)
+    max_context_length = Column(Integer, default=2000, nullable=False)
+    retrieval_k = Column(Integer, default=8, nullable=False)
+    final_k = Column(Integer, default=4, nullable=False)
+    
+    # Пороги важности
+    high_importance_threshold = Column(Float, default=0.8, nullable=False)
+    medium_importance_threshold = Column(Float, default=0.5, nullable=False)
+    min_relevance_score = Column(Float, default=0.2, nullable=False)
+    
+    # Временные настройки
+    time_gap_threshold = Column(Integer, default=300, nullable=False)  # секунды
+    
+    # Веса для ранжирования (JSON)
+    ranking_weights = Column(JSON, default={
+        "relevance": 0.7,
+        "temporal": 0.2,
+        "importance": 0.1
+    }, nullable=False)
+    
+    temporal_weights = Column(JSON, default={
+        "very_recent": 1.0,
+        "recent": 0.8,
+        "medium": 0.6,
+        "old": 0.4
+    }, nullable=False)
+    
+    importance_weights = Column(JSON, default={
+        "high_keywords": 0.3,
+        "medium_keywords": 0.15,
+        "message_length": 0.1,
+        "question_marks": 0.1,
+        "exclamation_marks": 0.05,
+        "caps_ratio": 0.05,
+        "user_feedback": 0.25
+    }, nullable=False)
+    
+    # Паттерны (JSON массивы)
+    topic_shift_patterns = Column(JSON, default=[
+        r"кстати|by the way|а еще|теперь о|давай поговорим",
+        r"другой вопрос|другая тема|переходим к",
+        r"забыл спросить|еще хотел|кстати да",
+        r"а что насчет|а как же|а про",
+        r"меняя тему|changing topic|new topic"
+    ], nullable=False)
+    
+    question_patterns = Column(JSON, default=[
+        r"как\s+(?:дела|настроение|ты|вы)",
+        r"что\s+(?:думаешь|скажешь|посоветуешь)",
+        r"можешь\s+(?:помочь|рассказать|объяснить)",
+        r"расскажи\s+(?:про|о|мне)"
+    ], nullable=False)
+    
+    completion_patterns = Column(JSON, default=[
+        r"понятно|ясно|спасибо|thanks|got it",
+        r"все ясно|все понял|все поняла",
+        r"отлично|хорошо|супер|perfect|great"
+    ], nullable=False)
+    
+    temporal_absolute_markers = Column(JSON, default=[
+        r"вчера|сегодня|завтра|послезавтра",
+        r"yesterday|today|tomorrow",
+        r"на прошлой неделе|на этой неделе|на следующей неделе"
+    ], nullable=False)
+    
+    temporal_relative_markers = Column(JSON, default=[
+        r"утром|днем|вечером|ночью",
+        r"morning|afternoon|evening|night",
+        r"недавно|давно|скоро|потом"
+    ], nullable=False)
+    
+    high_importance_keywords = Column(JSON, default=[
+        "важно", "срочно", "критично", "проблема", "ошибка",
+        "не работает", "сломалось", "помогите", "help",
+        "urgent", "important", "critical", "error", "broken",
+        "решение", "вывод", "итог", "conclusion", "result"
+    ], nullable=False)
+    
+    medium_importance_keywords = Column(JSON, default=[
+        "вопрос", "как", "почему", "что", "когда", "где",
+        "можно", "нужно", "хочу", "планирую", "думаю",
+        "question", "how", "why", "what", "when", "where",
+        "can", "should", "want", "plan", "think"
+    ], nullable=False)
+    
+    context_shift_markers = Column(JSON, default=[
+        r"но\s+(?:сейчас|теперь|давайте)",
+        r"однако|however|but now",
+        r"с другой стороны|on the other hand",
+        r"возвращаясь к|getting back to|back to"
+    ], nullable=False)
+    
+    technical_context_markers = Column(JSON, default=[
+        r"код|code|программа|program|скрипт|script",
+        r"ошибка|error|баг|bug|исключение|exception",
+        r"база данных|database|SQL|запрос|query",
+        r"API|REST|HTTP|JSON|XML"
+    ], nullable=False)
+    
+    emotional_context_markers = Column(JSON, default=[
+        r"нравится|не нравится|like|dislike",
+        r"хорошо|плохо|good|bad|отлично|excellent",
+        r"расстроен|радуюсь|грустно|весело",
+        r"спасибо|thanks|благодарю|appreciate"
+    ], nullable=False)
+    
+    dialogue_patterns = Column(JSON, default={
+        "question_answer": r"(.*?)(?:пользователь:|user:|вопрос:|question:)(.*?)(?:ответ:|answer:|assistant:|агент:)(.*?)(?=пользователь:|user:|$)",
+        "topic_discussion": r"(.*?)(?:говорили о|обсуждали|про|about)(.*?)(?=\.|!|\?|$)",
+        "problem_solution": r"(.*?)(?:проблема|ошибка|не работает|problem|error)(.*?)(?:решение|исправить|fix|solution)(.*?)(?=\.|!|\?|$)",
+        "instruction": r"(.*?)(?:как|how to|инструкция|instruction)(.*?)(?=\.|!|\?|$)",
+        "explanation": r"(.*?)(?:объясни|explain|расскажи|tell me)(.*?)(?=\.|!|\?|$)"
+    }, nullable=False)
+    
+    # Режимы пользователей (JSON)
+    user_modes = Column(JSON, default={
+        "casual": {
+            "chunking_strategy": "size_based",
+            "max_chunk_size": 256,
+            "max_context_length": 1000,
+            "importance_threshold": 0.3
+        },
+        "detailed": {
+            "chunking_strategy": "hybrid",
+            "max_chunk_size": 512,
+            "max_context_length": 2000,
+            "importance_threshold": 0.5
+        },
+        "technical": {
+            "chunking_strategy": "topic_based",
+            "max_chunk_size": 768,
+            "max_context_length": 3000,
+            "importance_threshold": 0.7
+        }
+    }, nullable=False)
+    
+    # Настройки эмоциональной памяти и нейромодуляции
+    emotion_triggers = Column(JSON, default={}, nullable=False)
+    neuromodulator_settings = Column(JSON, default={}, nullable=False)
+    emotion_analysis_config = Column(JSON, default={}, nullable=False)
+    
+    # Метаданные
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    version = Column(Integer, default=1, nullable=False)  # Версионирование настроек
+    
+    # Индексы
+    __table_args__ = (
+        Index('idx_agent_summarization_agent', 'agent_name'),
+        Index('idx_agent_summarization_updated', 'updated_at'),
+    )
+    
+    def to_config_dict(self) -> dict:
+        """Преобразует настройки БД в словарь конфигурации"""
+        
+        # Функция для преобразования списка строк в список объектов с флагом active
+        def convert_patterns_to_objects(patterns: list, defaults: list = None) -> list:
+            if defaults is None:
+                defaults = []
+            return [
+                {
+                    "pattern": pattern,
+                    "active": any(default.lower() in pattern.lower() for default in defaults) if defaults else True
+                }
+                for pattern in (patterns or [])
+            ]
+        
+        # Умные настройки по умолчанию
+        smart_defaults = {
+            "topic_shift": ["кстати", "другой вопрос", "а еще", "by the way", "speaking of"],
+            "questions": ["как дела", "что думаешь", "можешь помочь", "how are you", "what do you think", "can you help"],
+            "completion": ["понятно", "спасибо", "отлично", "got it", "thanks", "perfect"],
+            "temporal_absolute": ["вчера", "сегодня", "завтра", "yesterday", "today", "tomorrow"],
+            "temporal_relative": ["недавно", "скоро", "потом", "recently", "soon", "later"],
+            "importance_high": ["важно", "срочно", "проблема", "ошибка", "urgent", "critical", "error", "important"],
+            "importance_medium": ["вопрос", "интересно", "думаю", "question", "interesting", "think"],
+            "context_shift": ["однако", "с другой стороны", "however", "on the other hand"],
+            "technical_context": ["код", "ошибка", "программа", "code", "error", "program"],
+            "emotional_context": ["нравится", "хорошо", "плохо", "like", "good", "bad"]
+        }
+        
+        return {
+            "agent_name": self.agent_name,
+            "enabled": self.enabled,
+            "chunking_strategy": self.chunking_strategy,
+            "max_chunk_size": self.max_chunk_size,
+            "min_chunk_size": self.min_chunk_size,
+            "overlap_size": self.overlap_size,
+            "max_context_length": self.max_context_length,
+            "retrieval_k": self.retrieval_k,
+            "final_k": self.final_k,
+            "thresholds": {
+                "high_importance": self.high_importance_threshold,
+                "medium_importance": self.medium_importance_threshold,
+                "min_relevance": self.min_relevance_score,
+                "time_gap": self.time_gap_threshold
+            },
+            "weights": {
+                "ranking": self.ranking_weights,
+                "temporal": self.temporal_weights,
+                "importance": self.importance_weights
+            },
+            "patterns": {
+                "topic_shift": convert_patterns_to_objects(self.topic_shift_patterns, smart_defaults["topic_shift"]),
+                "questions": convert_patterns_to_objects(self.question_patterns, smart_defaults["questions"]),
+                "completion": convert_patterns_to_objects(self.completion_patterns, smart_defaults["completion"]),
+                "temporal_absolute": convert_patterns_to_objects(self.temporal_absolute_markers, smart_defaults["temporal_absolute"]),
+                "temporal_relative": convert_patterns_to_objects(self.temporal_relative_markers, smart_defaults["temporal_relative"]),
+                "importance_high": convert_patterns_to_objects(self.high_importance_keywords, smart_defaults["importance_high"]),
+                "importance_medium": convert_patterns_to_objects(self.medium_importance_keywords, smart_defaults["importance_medium"]),
+                "context_shift": convert_patterns_to_objects(self.context_shift_markers, smart_defaults["context_shift"]),
+                "technical_context": convert_patterns_to_objects(self.technical_context_markers, smart_defaults["technical_context"]),
+                "emotional_context": convert_patterns_to_objects(self.emotional_context_markers, smart_defaults["emotional_context"]),
+                "dialogue": self.dialogue_patterns
+            },
+            "user_modes": self.user_modes,
+            "emotion_triggers": self.emotion_triggers,
+            "neuromodulator_settings": self.neuromodulator_settings,
+            "emotion_analysis_config": self.emotion_analysis_config
+        }
+    
+    @classmethod
+    def from_config_dict(cls, agent_name: str, config: dict) -> 'AgentSummarizationSettings':
+        """Создает экземпляр из словаря конфигурации"""
+        
+        # Функция для извлечения активных паттернов из объектов
+        def extract_active_patterns(pattern_objects: list) -> list:
+            if not pattern_objects:
+                return []
+            
+            # Если это уже список строк (старый формат)
+            if isinstance(pattern_objects[0], str):
+                return pattern_objects
+            
+            # Если это список объектов с флагом active (новый формат)
+            return [obj["pattern"] for obj in pattern_objects if obj.get("active", True)]
+        
+        patterns = config.get("patterns", {})
+        
+        return cls(
+            agent_name=agent_name,
+            enabled=config.get("enabled", True),
+            chunking_strategy=config.get("chunking_strategy", "hybrid"),
+            max_chunk_size=config.get("max_chunk_size", 512),
+            min_chunk_size=config.get("min_chunk_size", 100),
+            overlap_size=config.get("overlap_size", 50),
+            max_context_length=config.get("max_context_length", 2000),
+            retrieval_k=config.get("retrieval_k", 8),
+            final_k=config.get("final_k", 4),
+            high_importance_threshold=config.get("thresholds", {}).get("high_importance", 0.8),
+            medium_importance_threshold=config.get("thresholds", {}).get("medium_importance", 0.5),
+            min_relevance_score=config.get("thresholds", {}).get("min_relevance", 0.2),
+            time_gap_threshold=config.get("thresholds", {}).get("time_gap", 300),
+            ranking_weights=config.get("weights", {}).get("ranking", {}),
+            temporal_weights=config.get("weights", {}).get("temporal", {}),
+            importance_weights=config.get("weights", {}).get("importance", {}),
+            topic_shift_patterns=extract_active_patterns(patterns.get("topic_shift", [])),
+            question_patterns=extract_active_patterns(patterns.get("questions", [])),
+            completion_patterns=extract_active_patterns(patterns.get("completion", [])),
+            temporal_absolute_markers=extract_active_patterns(patterns.get("temporal_absolute", [])),
+            temporal_relative_markers=extract_active_patterns(patterns.get("temporal_relative", [])),
+            high_importance_keywords=extract_active_patterns(patterns.get("importance_high", [])),
+            medium_importance_keywords=extract_active_patterns(patterns.get("importance_medium", [])),
+            context_shift_markers=extract_active_patterns(patterns.get("context_shift", [])),
+            technical_context_markers=extract_active_patterns(patterns.get("technical_context", [])),
+            emotional_context_markers=extract_active_patterns(patterns.get("emotional_context", [])),
+            dialogue_patterns=patterns.get("dialogue", {}),
+            user_modes=config.get("user_modes", {}),
+            emotion_triggers=config.get("emotion_triggers", {}),
+            neuromodulator_settings=config.get("neuromodulator_settings", {}),
+            emotion_analysis_config=config.get("emotion_analysis_config", {})
+        )
+
 
 # ============================================================================
 # МОДЕЛИ ДЛЯ ПЕРСИСТЕНТНОГО ХРАНЕНИЯ ПРОФИЛЕЙ

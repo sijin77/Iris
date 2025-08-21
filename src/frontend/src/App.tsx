@@ -3,6 +3,8 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Layout from './components/Layout';
 import Home from './pages/Home';
 import Config from './pages/Config';
+import SummarizationConfig from './pages/SummarizationConfig';
+import EmotionalMemoryConfig from './pages/EmotionalMemoryConfig';
 
 // Простые тестовые страницы для отладки
 const Chat = () => {
@@ -49,6 +51,8 @@ const App: React.FC = () => {
           <Route path="/" element={<Home />} />
           <Route path="/chat" element={<Chat />} />
           <Route path="/config" element={<Config />} />
+          <Route path="/summarization" element={<SummarizationConfig />} />
+          <Route path="/emotional-memory" element={<EmotionalMemoryConfig />} />
           <Route path="/storage" element={<Storage />} />
           <Route path="/test" element={<TestPage />} />
         </Routes>

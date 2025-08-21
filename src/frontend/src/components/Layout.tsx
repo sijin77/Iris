@@ -1,6 +1,6 @@
 import React from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { MessageCircle, Settings, Database, Home, User } from 'lucide-react';
+import { MessageCircle, Settings, Database, Home, User, Brain, Heart } from 'lucide-react';
 
 const Layout: React.FC = () => {
   const location = useLocation();
@@ -20,6 +20,8 @@ const Layout: React.FC = () => {
             <NavLink to="/" icon={<Home className="w-6 h-6" />} label="Главная" isActive={location.pathname === '/'} />
             <NavLink to="/chat" icon={<MessageCircle className="w-6 h-6" />} label="Чат" isActive={location.pathname === '/chat'} />
             <NavLink to="/config" icon={<Settings className="w-6 h-6" />} label="Настройки" isActive={location.pathname === '/config'} />
+            <NavLink to="/summarization" icon={<Brain className="w-6 h-6" />} label="Суммаризация" isActive={location.pathname === '/summarization'} />
+            <NavLink to="/emotional-memory" icon={<Heart className="w-6 h-6" />} label="Эмоции" isActive={location.pathname === '/emotional-memory'} />
             <NavLink to="/storage" icon={<Database className="w-6 h-6" />} label="Хранилище" isActive={location.pathname === '/storage'} />
             {/* Тестовая ссылка для отладки */}
             <NavLink to="/test" icon={<span className="w-6 h-6 text-center text-lg font-bold">T</span>} label="Тест" isActive={location.pathname === '/test'} />
@@ -53,6 +55,8 @@ const Layout: React.FC = () => {
                 <MobileNavLink to="/" icon={<Home className="w-5 h-5" />} />
                 <MobileNavLink to="/chat" icon={<MessageCircle className="w-5 h-5" />} />
                 <MobileNavLink to="/config" icon={<Settings className="w-5 h-5" />} />
+                <MobileNavLink to="/summarization" icon={<Brain className="w-5 h-5" />} />
+                <MobileNavLink to="/emotional-memory" icon={<Heart className="w-5 h-5" />} />
                 <MobileNavLink to="/storage" icon={<Database className="w-5 h-5" />} />
               </nav>
             </div>

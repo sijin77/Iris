@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Эмоциональная память Ириски - Демо</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .card-blur {
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .emotion-card {
+            transition: all 0.3s ease;
+        }
+        .emotion-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-white mb-2">
+                <i class="fas fa-heart text-pink-300 mr-3"></i>
+                Эмоциональная память Ириски
+            </h1>
+            <p class="text-white/80 text-lg">
+                Конфигурируемые триггеры эмоций и нейромодуляторы
+            </p>
+        </div>
+
+        <!-- Status Card -->
+        <div class="card-blur rounded-2xl p-6 mb-8">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                    <span class="font-semibold text-gray-800">Агент: Iriska</span>
+                    <span class="text-sm text-gray-600">800+ эмоциональных триггеров активны</span>
+                </div>
+                <div class="text-sm text-gray-600">
+                    <i class="fas fa-brain mr-2"></i>5 нейромодуляторов настроены
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="mb-6">
+            <div class="flex space-x-4 bg-white/20 rounded-xl p-2">
+                <button onclick="showTab('triggers')" id="tab-triggers" class="tab-btn flex items-center space-x-2 px-4 py-2 rounded-lg text-white bg-white/30">
+                    <i class="fas fa-heart"></i>
+                    <span>Эмоциональные триггеры</span>
+                </button>
+                <button onclick="showTab('modulators')" id="tab-modulators" class="tab-btn flex items-center space-x-2 px-4 py-2 rounded-lg text-white/70 hover:bg-white/20">
+                    <i class="fas fa-brain"></i>
+                    <span>Нейромодуляторы</span>
+                </button>
+                <button onclick="showTab('analysis')" id="tab-analysis" class="tab-btn flex items-center space-x-2 px-4 py-2 rounded-lg text-white/70 hover:bg-white/20">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Анализ эмоций</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div id="content-triggers" class="tab-content">
+            <div class="card-blur rounded-2xl p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-2xl font-semibold text-gray-800">Эмоциональные триггеры</h3>
+                    <div class="text-sm text-gray-600">
+                        <span class="font-semibold text-green-600">234 активны</span> из 834 всего
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <!-- Joy Triggers -->
+                    <div class="emotion-card bg-yellow-50 border border-yellow-200 rounded-xl p-4">
+                        <div class="flex items-center space-x-3 mb-3">
+                            <span class="text-3xl">😊</span>
+                            <div>
+                                <h4 class="font-semibold text-yellow-800">Радость</h4>
+                                <p class="text-sm text-yellow-600">25 из 67 активны</p>
+                            </div>
+                        </div>
+                        <div class="space-y-2 text-sm">
+                            <div class="flex items-center justify-between bg-white/60 rounded px-2 py-1">
+                                <span>восторг</span>
+                                <span class="font-mono text-xs">0.9</span>
+                            </div>
+                            <div class="flex items-center justify-between bg-white/60 rounded px-2 py-1">
+                                <span>счастье</span>
+                                <span class="font-mono text-xs">0.9</span>
+                            </div>
+                            <div class="flex items-center justify-between bg-white/60 rounded px-2 py-1">
+                                <span>кайф</span>
+                                <span class="font-mono text-xs">0.7</span>
+                            </div>
+                            <div class="text-center text-xs text-yellow-600">+22 больше...</div>
+                        </div>
+                    </div>
+
+                    <!-- Anger Triggers -->
+                    <div class="emotion-card bg-red-50 border border-red-200 rounded-xl p-4">
+                        <div class="flex items-center space-x-3 mb-3">
+                            <span class="text-3xl">😠</span>
+                            <div>
+                                <h4 class="font-semibold text-red-800">Гнев</h4>
+                                <p class="text-sm text-red-600">18 из 45 активны</p>
+                            </div>
+                        </div>
+                        <div class="space-y-2 text-sm">
+                            <div class="flex items-center justify-between bg-white/60 rounded px-2 py-1">
+                                <span>ярость</span>
+                                <span class="font-mono text-xs">1.0</span>
+                            </div>
+                            <div class="flex items-center justify-between bg-white/60 rounded px-2 py-1">
+                                <span>бешенство</span>
+                                <span class="font-mono text-xs">1.0</span>
+                            </div>
+                            <div class="flex items-center justify-between bg-white/60 rounded px-2 py-1">
+                                <span>бесит</span>
+                                <span class="font-mono text-xs">0.8</span>
+                            </div>
+                            <div class="text-center text-xs text-red-600">+15 больше...</div>
+                        </div>
+                    </div>
+
+                    <!-- Fear Triggers -->
+                    <div class="emotion-card bg-purple-50 border border-purple-200 rounded-xl p-4">
+                        <div class="flex items-center space-x-3 mb-3">
+                            <span class="text-3xl">😨</span>
+                            <div>
+                                <h4 class="font-semibold text-purple-800">Страх</h4>
+                                <p class="text-sm text-purple-600">12 из 38 активны</p>
+                            </div>
+                        </div>
+                        <div class="space-y-2 text-sm">
+                            <div class="flex items-center justify-between bg-white/60 rounded px-2 py-1">
+                                <span>ужас</span>
+                                <span class="font-mono text-xs">1.0</span>
+                            </div>
+                            <div class="flex items-center justify-between bg-white/60 rounded px-2 py-1">
+                                <span>паника</span>
+                                <span class="font-mono text-xs">1.0</span>
+                            </div>
+                            <div class="flex items-center justify-between bg-white/60 rounded px-2 py-1">
+                                <span>боюсь</span>
+                                <span class="font-mono text-xs">0.7</span>
+                            </div>
+                            <div class="text-center text-xs text-purple-600">+9 больше...</div>
+                        </div>
+                    </div>
+
+                    <!-- Trust Triggers -->
+                    <div class="emotion-card bg-indigo-50 border border-indigo-200 rounded-xl p-4">
+                        <div class="flex items-center space-x-3 mb-3">
+                            <span class="text-3xl">🤝</span>
+                            <div>
+                                <h4 class="font-semibold text-indigo-800">Доверие</h4>
+                                <p class="text-sm text-indigo-600">8 из 24 активны</p>
+                            </div>
+                        </div>
+                        <div class="space-y-2 text-sm">
+                            <div class="flex items-center justify-between bg-white/60 rounded px-2 py-1">
+                                <span>доверие</span>
+                                <span class="font-mono text-xs">0.8</span>
+                            </div>
+                            <div class="flex items-center justify-between bg-white/60 rounded px-2 py-1">
+                                <span>верность</span>
+                                <span class="font-mono text-xs">0.8</span>
+                            </div>
+                            <div class="flex items-center justify-between bg-white/60 rounded px-2 py-1">
+                                <span>надеюсь</span>
+                                <span class="font-mono text-xs">0.5</span>
+                            </div>
+                            <div class="text-center text-xs text-indigo-600">+5 больше...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                    <div class="flex items-center space-x-2 mb-2">
+                        <i class="fas fa-info-circle text-blue-600"></i>
+                        <span class="font-semibold text-blue-800">Как это работает</span>
+                    </div>
+                    <p class="text-sm text-blue-700">
+                        Каждый триггер имеет вес от 0.0 до 1.0. Когда пользователь пишет "Я в восторге!", 
+                        система находит триггер "восторг" с весом 0.9 и активирует эмоцию радости с высокой интенсивностью.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div id="content-modulators" class="tab-content hidden">
+            <div class="card-blur rounded-2xl p-6">
+                <h3 class="text-2xl font-semibold text-gray-800 mb-6">Нейромодуляторы</h3>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Dopamine -->
+                    <div class="bg-red-50 border border-red-200 rounded-xl p-4">
+                        <div class="flex items-center space-x-3 mb-4">
+                            <span class="text-3xl">🎯</span>
+                            <div>
+                                <h4 class="font-semibold text-red-800">Дофамин</h4>
+                                <p class="text-sm text-red-600">Вознаграждение, мотивация</p>
+                            </div>
+                        </div>
+                        <div class="space-y-3">
+                            <div>
+                                <div class="flex justify-between text-sm mb-1">
+                                    <span>Базовый уровень</span>
+                                    <span class="font-mono">0.5</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-red-500 h-2 rounded-full" style="width: 50%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-sm mb-1">
+                                    <span>Порог активации</span>
+                                    <span class="font-mono">0.7</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-red-400 h-2 rounded-full" style="width: 70%"></div>
+                                </div>
+                            </div>
+                            <div class="text-xs text-red-600">
+                                Полураспад: 30 мин<br>
+                                Приоритет: ×1.5<br>
+                                Обучение: ×1.3
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Serotonin -->
+                    <div class="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                        <div class="flex items-center space-x-3 mb-4">
+                            <span class="text-3xl">😌</span>
+                            <div>
+                                <h4 class="font-semibold text-blue-800">Серотонин</h4>
+                                <p class="text-sm text-blue-600">Настроение, стабильность</p>
+                            </div>
+                        </div>
+                        <div class="space-y-3">
+                            <div>
+                                <div class="flex justify-between text-sm mb-1">
+                                    <span>Базовый уровень</span>
+                                    <span class="font-mono">0.6</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-blue-500 h-2 rounded-full" style="width: 60%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-sm mb-1">
+                                    <span>Порог активации</span>
+                                    <span class="font-mono">0.3</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-blue-400 h-2 rounded-full" style="width: 30%"></div>
+                                </div>
+                            </div>
+                            <div class="text-xs text-blue-600">
+                                Полураспад: 120 мин<br>
+                                Стабилизация: ×1.0<br>
+                                Регуляция: ×1.4
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Norepinephrine -->
+                    <div class="bg-orange-50 border border-orange-200 rounded-xl p-4">
+                        <div class="flex items-center space-x-3 mb-4">
+                            <span class="text-3xl">⚡</span>
+                            <div>
+                                <h4 class="font-semibold text-orange-800">Норэпинефрин</h4>
+                                <p class="text-sm text-orange-600">Внимание, стресс</p>
+                            </div>
+                        </div>
+                        <div class="space-y-3">
+                            <div>
+                                <div class="flex justify-between text-sm mb-1">
+                                    <span>Базовый уровень</span>
+                                    <span class="font-mono">0.4</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-orange-500 h-2 rounded-full" style="width: 40%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-sm mb-1">
+                                    <span>Порог активации</span>
+                                    <span class="font-mono">0.6</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-orange-400 h-2 rounded-full" style="width: 60%"></div>
+                                </div>
+                            </div>
+                            <div class="text-xs text-orange-600">
+                                Полураспад: 15 мин<br>
+                                Фокус: ×1.6<br>
+                                Бдительность: ×1.7
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-6 p-4 bg-green-50 border border-green-200 rounded-xl">
+                    <div class="flex items-center space-x-2 mb-2">
+                        <i class="fas fa-lightbulb text-green-600"></i>
+                        <span class="font-semibold text-green-800">Нейромодуляция в действии</span>
+                    </div>
+                    <p class="text-sm text-green-700">
+                        Когда пользователь выражает радость, активируется дофамин, который увеличивает приоритет воспоминания в 1.5 раза. 
+                        При стрессе включается норэпинефрин, усиливая внимание и кодирование важных событий.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div id="content-analysis" class="tab-content hidden">
+            <div class="card-blur rounded-2xl p-6">
+                <h3 class="text-2xl font-semibold text-gray-800 mb-6">Конфигурация анализа эмоций</h3>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Intensity Thresholds -->
+                    <div class="bg-purple-50 border border-purple-200 rounded-xl p-4">
+                        <h4 class="font-semibold text-purple-800 mb-4">Пороги интенсивности</h4>
+                        <div class="space-y-3">
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm">Very High</span>
+                                <div class="flex items-center space-x-2">
+                                    <div class="w-24 bg-gray-200 rounded-full h-2">
+                                        <div class="bg-purple-500 h-2 rounded-full" style="width: 80%"></div>
+                                    </div>
+                                    <span class="font-mono text-xs">0.8</span>
+                                </div>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm">High</span>
+                                <div class="flex items-center space-x-2">
+                                    <div class="w-24 bg-gray-200 rounded-full h-2">
+                                        <div class="bg-purple-400 h-2 rounded-full" style="width: 60%"></div>
+                                    </div>
+                                    <span class="font-mono text-xs">0.6</span>
+                                </div>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm">Medium</span>
+                                <div class="flex items-center space-x-2">
+                                    <div class="w-24 bg-gray-200 rounded-full h-2">
+                                        <div class="bg-purple-300 h-2 rounded-full" style="width: 40%"></div>
+                                    </div>
+                                    <span class="font-mono text-xs">0.4</span>
+                                </div>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm">Low</span>
+                                <div class="flex items-center space-x-2">
+                                    <div class="w-24 bg-gray-200 rounded-full h-2">
+                                        <div class="bg-purple-200 h-2 rounded-full" style="width: 20%"></div>
+                                    </div>
+                                    <span class="font-mono text-xs">0.2</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Modifiers -->
+                    <div class="bg-teal-50 border border-teal-200 rounded-xl p-4">
+                        <h4 class="font-semibold text-teal-800 mb-4">Модификаторы интенсивности</h4>
+                        <div class="space-y-2 text-sm">
+                            <div class="flex justify-between bg-white/60 rounded px-2 py-1">
+                                <span>очень</span>
+                                <span class="font-mono text-xs">×1.5</span>
+                            </div>
+                            <div class="flex justify-between bg-white/60 rounded px-2 py-1">
+                                <span>крайне</span>
+                                <span class="font-mono text-xs">×1.8</span>
+                            </div>
+                            <div class="flex justify-between bg-white/60 rounded px-2 py-1">
+                                <span>чуть</span>
+                                <span class="font-mono text-xs">×0.4</span>
+                            </div>
+                            <div class="flex justify-between bg-white/60 rounded px-2 py-1">
+                                <span>немного</span>
+                                <span class="font-mono text-xs">×0.6</span>
+                            </div>
+                            <div class="text-center text-xs text-teal-600">+36 модификаторов...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-xl">
+                    <div class="flex items-center space-x-2 mb-2">
+                        <i class="fas fa-cogs text-yellow-600"></i>
+                        <span class="font-semibold text-yellow-800">Контекстный анализ</span>
+                    </div>
+                    <p class="text-sm text-yellow-700">
+                        Система анализирует не только отдельные слова, но и контекст: "Я не очень счастлив" → 
+                        отрицание снижает радость, а "очень" изначально усиливает эмоцию в 1.5 раза.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="text-center mt-8 text-white/70">
+            <p class="text-sm">
+                <i class="fas fa-rocket mr-2"></i>
+                Эмоциональная память полностью конфигурируема через веб-интерфейс
+            </p>
+        </div>
+    </div>
+
+    <script>
+        function showTab(tabName) {
+            // Hide all content
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.add('hidden');
+            });
+            
+            // Remove active class from all tabs
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('bg-white/30');
+                btn.classList.add('text-white/70', 'hover:bg-white/20');
+            });
+            
+            // Show selected content
+            document.getElementById('content-' + tabName).classList.remove('hidden');
+            
+            // Add active class to selected tab
+            const activeTab = document.getElementById('tab-' + tabName);
+            activeTab.classList.add('bg-white/30');
+            activeTab.classList.remove('text-white/70', 'hover:bg-white/20');
+        }
+
+        // Initialize with first tab
+        showTab('triggers');
+    </script>
+</body>
+</html>
